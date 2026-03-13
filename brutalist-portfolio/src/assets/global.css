@@ -1,0 +1,35 @@
+/* src/assets/global.css */
+
+:root {
+  /* The Brutalist Palette */
+  --bg-color: #0b0b0b;      /* Deep, industrial black */
+  --text-main: #f5f5f5;     /* Stark, readable white */
+  --accent-yellow: #ffea00; /* Cyber Yellow */
+  
+  /* Structural Variables */
+  --border-heavy: 4px solid var(--text-main);
+  --shadow-harsh: 8px 8px 0px var(--accent-yellow);
+}
+
+/* The Reset - Strips away all soft browser defaults */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  /* Use a heavy, system sans-serif font to start. 
+     You can import Google Fonts like 'Space Grotesk' or 'Inter' later */
+  font-family: 'Helvetica Neue', Arial, sans-serif; 
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden; /* Prevents horizontal scrolling issues */
+}
+
+/* Base link styling - raw and aggressive */
+a {
+  color: var(--text-main);
+  text-decoration: none;
+}

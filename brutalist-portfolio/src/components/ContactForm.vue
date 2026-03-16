@@ -107,7 +107,7 @@ const submitForm = async () => {
               id="name"
               v-model="formData.name"
               required
-              placeholder="ENTER YOUR DESIGNATION"
+              placeholder="ENTER YOUR NAME"
               class="brutalist-input"
             />
           </div>

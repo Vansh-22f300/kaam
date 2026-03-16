@@ -1,14 +1,44 @@
 <script setup lang="ts">
+import { ref, onMounted, onUnmounted } from 'vue';
 import type { Project } from '../data/portfolioData';
 
-// Tell Vue this component expects a "project" object as a prop
 defineProps<{
   project: Project
 }>();
+
+// --- THE NEW OBSERVER LOGIC ---
+const cardRef = ref<HTMLElement | null>(null); // Hooks into the HTML element
+const isVisible = ref(false); // Controls our CSS class
+let observer: IntersectionObserver;
+
+onMounted(() => {
+  // Triggers when 10% of the card enters the viewport
+  observer = new IntersectionObserver(([entry]) => {
+    if (entry.isIntersecting) {
+      isVisible.value = true;
+      // Stop observing once it reveals so it doesn't animate twice
+      if (cardRef.value) observer.unobserve(cardRef.value); 
+    }
+  }, { threshold: 0.1 });
+
+  // Start watching the card
+  if (cardRef.value) {
+    observer.observe(cardRef.value);
+  }
+});
+
+onUnmounted(() => {
+  // Always clean up to prevent memory leaks
+  if (observer) observer.disconnect();
+});
 </script>
 
 <template>
-  <article class="project-card">
+  <article 
+    ref="cardRef" 
+    class="project-card"
+    :class="{ 'revealed': isVisible }"
+  >
     <div class="card-header">
       <h3 class="project-title">{{ project.title }}</h3>
     </div>
@@ -31,28 +61,44 @@ defineProps<{
 </template>
 
 <style scoped>
+/* --- UPDATED: The initial hidden state --- */
 .project-card {
   border: var(--border-heavy);
   background-color: var(--bg-color);
   display: flex;
   flex-direction: column;
-  transition: all 0.1s linear; /* Harsh, fast transition */
+  
+  /* Start invisible and pushed down 100px */
+  opacity: 0; 
+  transform: translateY(100px); 
+  transition: all 0.1s linear; 
 }
 
-/* The Brutalist Hover Effect */
-.project-card:hover {
+/* --- NEW: The Snapping Reveal Animation --- */
+.project-card.revealed {
+  animation: brutal-snap 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1) forwards;
+}
+
+@keyframes brutal-snap {
+  0% { opacity: 0; transform: translateY(100px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* --- UPDATED: Only allow hover effects AFTER it is revealed --- */
+.project-card.revealed:hover {
   transform: translate(-6px, -6px);
   box-shadow: 12px 12px 0px var(--accent-yellow);
   border-color: var(--accent-yellow);
 }
 
+
+/* --- THE REST OF YOUR CSS REMAINS UNCHANGED --- */
 .card-header {
   border-bottom: var(--border-heavy);
   padding: 1.5rem;
 }
 
-/* In Brutalism, elements often inherit border colors on hover */
-.project-card:hover .card-header {
+.project-card.revealed:hover .card-header {
   border-bottom-color: var(--accent-yellow);
 }
 
@@ -65,7 +111,7 @@ defineProps<{
 
 .card-body {
   padding: 1.5rem;
-  flex-grow: 1; /* Pushes footer to the bottom */
+  flex-grow: 1; 
 }
 
 .project-desc {
@@ -93,7 +139,7 @@ defineProps<{
   display: flex;
 }
 
-.project-card:hover .card-footer {
+.project-card.revealed:hover .card-footer {
   border-top-color: var(--accent-yellow);
 }
 
@@ -107,7 +153,7 @@ defineProps<{
   transition: background-color 0.1s linear;
 }
 
-.project-card:hover .card-link {
+.project-card.revealed:hover .card-link {
   border-right-color: var(--accent-yellow);
 }
 

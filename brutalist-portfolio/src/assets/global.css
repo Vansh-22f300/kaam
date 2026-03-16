@@ -12,10 +12,12 @@
 }
 
 /* The Reset - Strips away all soft browser defaults */
+/* Inside src/assets/global.css */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  cursor: none !important; /* HIDES THE DEFAULT MOUSE POINTER */
 }
 
 body {

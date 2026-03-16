@@ -2,7 +2,7 @@
 // You can replace these with your actual links later
 const email = "mailto:vanshmittal021@gmail.com";
 const github = "https://github.com/Vansh-22f300";
-const linkedin = "https://linkedin.com/in/yourusername";
+const linkedin = "https://linkedin.com/in/vansh-mittal-vm";
 </script>
 
 <template>

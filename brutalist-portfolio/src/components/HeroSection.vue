@@ -1,5 +1,17 @@
 <script setup lang="ts">
-// We will add logic here later if needed, but for now, it's purely visual.
+const scrollToProjects = () => {
+  const target = document.getElementById("projects");
+  if (!target) return;
+
+  const prefersReducedMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)",
+  ).matches;
+
+  target.scrollIntoView({
+    behavior: prefersReducedMotion ? "auto" : "smooth",
+    block: "start",
+  });
+};
 </script>
 
 <template>
@@ -19,7 +31,9 @@
       </p>
 
       <div class="hero-actions">
-        <button class="brutalist-btn">[ VIEW PROJECTS ]</button>
+        <button class="brutalist-btn" @click="scrollToProjects">
+          [ VIEW PROJECTS ]
+        </button>
         <div class="hero-tag">2026 PORTFOLIO BUILD</div>
       </div>
     </div>

@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 
 // 1. Controls whether the whole loading screen is visible
 const isVisible = ref(true);
+const isClosing = ref(false);
 
 // 2. The lines currently visible on the screen
 const displayedLines = ref<string[]>([]);
@@ -10,6 +11,8 @@ const displayedLines = ref<string[]>([]);
 // 3. Progress bar control
 const showProgress = ref(false);
 const progress = ref(0);
+const timeoutIds: ReturnType<typeof setTimeout>[] = [];
+let animationFrameId: number | null = null;
 
 // 4. The SDE boot sequence (Notice the C++ easter egg)
 const bootSequence = [
@@ -25,20 +28,30 @@ const bootSequence = [
 onMounted(() => {
   let delay = 0;
 
+  const queueTimeout = (callback: () => void, ms: number) => {
+    const id = setTimeout(callback, ms);
+    timeoutIds.push(id);
+  };
+
   // Loop through each line and push it to the screen with a slight delay
   bootSequence.forEach((line, index) => {
     delay += Math.random() * 300 + 100; // Random delay between 100ms and 400ms for realism
 
-    setTimeout(() => {
+    queueTimeout(() => {
       displayedLines.value.push(line);
 
       // If it's the last line, wait a bit longer, then slide down
       if (index === bootSequence.length - 1) {
-        setTimeout(() => {
-          isVisible.value = false;
-          // Immediately trigger progress bar
+        queueTimeout(() => {
+          // Bring in the progress overlay first so the page never flashes through.
           showProgress.value = true;
-          animateProgress();
+          isClosing.value = true;
+
+          // Let the slide-out animation complete before unmounting terminal
+          queueTimeout(() => {
+            isVisible.value = false;
+            animateProgress();
+          }, 800);
         }, 1800);
       }
     }, delay);
@@ -56,17 +69,25 @@ const animateProgress = () => {
     progress.value = percentage;
 
     if (percentage < 100) {
-      requestAnimationFrame(tick);
+      animationFrameId = requestAnimationFrame(tick);
     } else {
       // Hide progress bar after completion
-      setTimeout(() => {
+      const id = setTimeout(() => {
         showProgress.value = false;
       }, 300);
+      timeoutIds.push(id);
     }
   };
 
-  requestAnimationFrame(tick);
+  animationFrameId = requestAnimationFrame(tick);
 };
+
+onUnmounted(() => {
+  timeoutIds.forEach((id) => clearTimeout(id));
+  if (animationFrameId !== null) {
+    cancelAnimationFrame(animationFrameId);
+  }
+});
 </script>
 
 <template>
@@ -74,7 +95,7 @@ const animateProgress = () => {
     <div
       v-if="isVisible"
       class="terminal-overlay"
-      :class="{ 'fade-out': !isVisible }"
+      :class="{ 'fade-out': isClosing }"
     >
       <div class="terminal-frame">
         <div class="frame-header">
@@ -343,16 +364,6 @@ const animateProgress = () => {
   justify-content: center;
   align-items: center;
   padding: 2rem;
-  animation: progress-fade-in 0.3s ease-out forwards;
-}
-
-@keyframes progress-fade-in {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
 }
 
 .progress-container {
